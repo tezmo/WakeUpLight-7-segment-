@@ -74,10 +74,6 @@ void loop() {
   switch (state) {
       
     case TIME: {
-        if(debug){    
-        Serial.print("state = ");
-        Serial.println(state);
-        }
 
         if ( RTC.alarm(ALARM_1)&&alarmOn){
           state = ALARM;
@@ -99,33 +95,23 @@ void loop() {
 
 
     case MENU: {
-        if(debug){    
-        Serial.print("state = ");
-        Serial.println(state);
-        }
-        
-        Serial.print("MENU: ");
+       
         menuResult = readEncoder(3);
-        Serial.println(menuResult);
-
 
        switch (menuResult) {
           case 0:
-            Serial.println("SET ALARM");
             lc.setChar(0,0,'a',false);
             lc.setChar(0,1,'l',false);
             lc.setChar(0,2,'a',false);
             lc.setRow(0,3,B00000101);
             break;
           case 1:    
-            Serial.println("RETURN & ALARM OFF");
             lc.setRow(0,0,B00000000);
             lc.setRow(0,1,B00000101);
             lc.setRow(0,2,B01001111);
             lc.setRow(0,3,B00001111);
             break;
           case 2:    
-            Serial.println("TIME SET ");
             lc.setRow(0,0,B00001111);
             lc.setRow(0,1,B01011011);
             lc.setRow(0,2,B01001111);
@@ -140,19 +126,19 @@ void loop() {
           
           switch (menuResult) {
             case 0:
-              Serial.println("SET ALARM");
+              if (debug)  Serial.println("SET ALARM");
               alarmHourSet = false;
               alaHours = 0;
               alaMins = 0;
               state = SETALARM;
               break;
             case 1:    
-              Serial.println("TIME & ALARM OFF");
+              if (debug)  Serial.println("TIME & ALARM OFF");
               alarmOn = false;
               state = TIME;
               break;
             case 2:    
-              Serial.println("SET TIME");
+              if (debug) Serial.println("SET TIME");
               timeHourSet = false;
               timeHours = 0;
               timeMins = 0;
@@ -165,16 +151,9 @@ void loop() {
       
     case SETALARM: {
          long tempEnc = 0;
-        
-        if(debug){    
-        Serial.print("state = ");
-        Serial.println(state);
-        }
 
         if (!alarmHourSet){
           tempEnc = readEncoder(24);
-          Serial.print("Alarm hour: ");
-          Serial.println(tempEnc);
 
            //leftmost digits - hours
            lc.setDigit(0,0,(tempEnc / 10),false);
@@ -193,8 +172,6 @@ void loop() {
         
         if (alarmHourSet){
           tempEnc = readEncoder(60);
-          Serial.print("Alarm mins: ");
-          Serial.println(tempEnc);
 
            //rightmost digits - mins
            lc.setDigit(0,2,(tempEnc / 10),false);
@@ -203,7 +180,6 @@ void loop() {
          
           if (encButton.released()){
             alaMins = tempEnc;
-            Serial.println("MINS SET");
 
              long alaMinsSet = 0;
              long alaHourSet = 0;
@@ -229,14 +205,7 @@ void loop() {
       }
 
     case SHOWALARM: {
-        if(debug){    
-        Serial.print("state = ");
-        Serial.println(state);
-        }
-        Serial.print("ALARM IS SET TO: ");
-        Serial.print(alaHours);
-        Serial.print(":");
-        Serial.println(alaMins);  
+
         lc.setIntensity(0,0); 
         delay(500);
         lc.setIntensity(0,8); 
@@ -250,16 +219,9 @@ void loop() {
     case SETTIME: {
         long tempEnc = 0;
         
-        if(debug){    
-        Serial.print("state = ");
-        Serial.println(state);
-        }
-
         if (!timeHourSet){
           
           tempEnc = readEncoder(24);
-          Serial.print("Time hour: ");
-          Serial.println(tempEnc);
            
            //leftmost digits - hours
            lc.setDigit(0,0,(tempEnc / 10),false);
@@ -276,8 +238,6 @@ void loop() {
         
         if (timeHourSet){
           tempEnc = readEncoder(60);
-          Serial.print("Time mins: ");
-          Serial.println(tempEnc);
 
             //rightmost digits - mins
            lc.setDigit(0,2,(tempEnc / 10),false);
@@ -285,8 +245,6 @@ void loop() {
           
           if (encButton.released()){
             timeMins = tempEnc;
-            Serial.println("MINS SET");
-
        
             tm.Year = 46; //since 1970, this means 2016
             tm.Month = 12;
@@ -301,7 +259,6 @@ void loop() {
             delay(500);
             lc.setIntensity(0,8);            
             if (debug){ 
-              Serial.println("SET TIME to: ");
 
                         
               //TimeDateDisplay();
@@ -314,10 +271,7 @@ void loop() {
       }
 
     case ALARM: {
-        if(debug){    
-        Serial.print("state = ");
-        Serial.println(state);
-        }
+
         
         if ((millis() - timeLapse) > steps) {
           wakeUp();
@@ -334,11 +288,8 @@ void loop() {
     break;
     }
 
-    //NOT USED
+    //NOT USED should I even implement this?
    case SNOOZE: {
-        if(debug){    
-        Serial.println("state = snooze");
-        }
  
        // User ihas indicated is still awake
        if (millis() - snoozeMillis> snoozeTime){
@@ -368,8 +319,6 @@ void DisplayDigits(long value1, long value2)
 }
 
 
-
-
 long readEncoder(long maxOptions){
   //because one 'blip' is 4 
   maxOptions = maxOptions * 4;
@@ -394,7 +343,5 @@ void wakeUp(){
         brightness = pow (2, (interval / R)) - 1;
         // Set the LED output to the calculated brightness
         analogWrite(outputPin, brightness);
-        Serial.print("Brightness: ");
-        Serial.println(brightness);     
         timeLapse = millis();
 }
