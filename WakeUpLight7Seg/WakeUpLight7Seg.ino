@@ -9,7 +9,16 @@
 #define RotaryBPIN    3
 Button encButton(4);
 
+
+
+boolean debug = false;            // extra debug info?
+
+
+
+
 LedControl lc=LedControl(12,11,10,1);
+int sensorPin = A0; // select the input pin for ldr
+int sensorValue = 0; // variable to store the value coming from the sensor
 
 Encoder myEnc(RotaryAPIN, RotaryBPIN);
 long oldPosition  = -999;
@@ -23,7 +32,7 @@ long alaMins;
 long timeHours;
 long timeMins;
 
-boolean debug = false;            // extra debug info?
+
 long snoozeMillis = 0;          // timekeeper for snoozing checking
 long snoozeTime = 10000;        // time between snoozes
 
@@ -32,8 +41,10 @@ float timeLapse = 0;
 float R;
 int interval;
 int brightness;
-int steps = 100; // milliseconds between steps
-const int pwmIntervals = 180; //STEPS
+int earlier = 1800; // seconds to start the alarm earlier (NB, when testing, set the alarm at LEAST this much in the future)
+const int pwmIntervals = earlier/10; //STEPS
+int steps = (earlier/pwmIntervals)*1000;  // milliseconds between steps
+
 
 
 //Setup the output PWM pin
@@ -57,6 +68,7 @@ void setup() {
   else
       Serial.println("RTC has set the system time"); 
 
+  lc.setScanLimit(0, 4); //only using 4 digits, remember to set the MAX7219 Resistor to the correct value! (ISET)
   lc.shutdown(0,false);
   /* Set the brightness to a medium values */
   lc.setIntensity(0,8);
@@ -69,6 +81,16 @@ void loop() {
 
   tmElements_t tm;
   time_t t;
+  
+  sensorValue = constrain(analogRead(sensorPin), 500, 1000);
+  int LDR = map(sensorValue, 500 , 1000, 1 , 15);
+  if (debug) {
+    Serial.print("SensorValue: ");
+    Serial.println(sensorValue);     
+    Serial.print("LDR: ");
+    Serial.println(LDR); 
+  }
+  lc.setIntensity(0,LDR);
   
   static enum { TIME, MENU, SETTIME, SETALARM, SHOWALARM, ALARM, SNOOZE } state = TIME;
   switch (state) {
@@ -185,15 +207,15 @@ void loop() {
              long alaMinsSet = 0;
              long alaHourSet = 0;
             
-            //FIX TO START 30 mins EARLIER - START WAKING UP BEFORE ALARM TIME
-            if (alaMins < 30)
+            //FIX TO START WAKING UP BEFORE ALARM TIME
+            if (alaMins < (earlier/60))
             {
-              alaMinsSet = alaMins + 30;
+              alaMinsSet = alaMins + (earlier/60);
               alaHourSet = alaHours -1;
             } 
-            if (alaMins >= 30)
+            if (alaMins >= (earlier/60))
             {
-              alaMinsSet = alaMins - 30;
+              alaMinsSet = alaMins - (earlier/60);
               alaHourSet = alaHours;
             }
             
