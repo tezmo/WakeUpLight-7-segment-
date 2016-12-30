@@ -1,6 +1,6 @@
 #include <Button.h>
 #include <DS3232RTC.h>    //http://github.com/JChristensen/DS3232RTC
-#include <Time.h>         //http://www.arduino.cc/playground/Code/Time  
+#include <TimeLib.h>         //http://www.arduino.cc/playground/Code/Time  
 #include <Wire.h>         //http://arduino.cc/en/Reference/Wire (included with Arduino IDE)
 #include <Encoder.h>
 #include "LedControl.h"   //https://github.com/wayoda/LedControl
@@ -32,7 +32,7 @@ float timeLapse = 0;
 float R;
 int interval;
 int brightness;
-int steps = 10000; // milliseconds between steps
+int steps = 100; // milliseconds between steps
 const int pwmIntervals = 180; //STEPS
 
 
@@ -76,6 +76,7 @@ void loop() {
     case TIME: {
 
         if ( RTC.alarm(ALARM_1)&&alarmOn){
+          if(debug) Serial.println("ALARM DETECTED");
           state = ALARM;
         }
         
